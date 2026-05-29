@@ -1,12 +1,12 @@
 <div align="center">
-  <img src="assets/brand/logo.svg" alt="PromptFlow STT" width="120" height="120" />
+  <img src="public/assets/brand/logo.svg" alt="PromptFlow STT" width="120" height="120" />
   <h1>PromptFlow STT</h1>
   <p><strong>AI-powered prompt enhancement + intelligent voice dictation — open source, privacy-first.</strong></p>
 
-  [![CI](https://github.com/JonatanGhub/PromptFlow-Speech2Text/actions/workflows/ci.yml/badge.svg)](https://github.com/JonatanGhub/PromptFlow-Speech2Text/actions/workflows/ci.yml)
-  [![Security](https://github.com/JonatanGhub/PromptFlow-Speech2Text/actions/workflows/security.yml/badge.svg)](https://github.com/JonatanGhub/PromptFlow-Speech2Text/actions/workflows/security.yml)
+  [![CI](https://github.com/NeoNexAI/PROMPTFLOW-STT_PROMPT_ENHANCER/actions/workflows/ci.yml/badge.svg)](https://github.com/NeoNexAI/PROMPTFLOW-STT_PROMPT_ENHANCER/actions/workflows/ci.yml)
+  [![Security](https://github.com/NeoNexAI/PROMPTFLOW-STT_PROMPT_ENHANCER/actions/workflows/security.yml/badge.svg)](https://github.com/NeoNexAI/PROMPTFLOW-STT_PROMPT_ENHANCER/actions/workflows/security.yml)
   [![License: MIT](https://img.shields.io/badge/License-MIT-7c6af7.svg)](LICENSE)
-  [![GitHub release](https://img.shields.io/github/v/release/JonatanGhub/PromptFlow-Speech2Text)](https://github.com/JonatanGhub/PromptFlow-Speech2Text/releases)
+  [![GitHub release](https://img.shields.io/github/v/release/NeoNexAI/PROMPTFLOW-STT_PROMPT_ENHANCER)](https://github.com/NeoNexAI/PROMPTFLOW-STT_PROMPT_ENHANCER/releases)
   [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 </div>
 
@@ -70,7 +70,7 @@ OpenAI · Anthropic (Claude) · Google Gemini · Ollama (local) · Groq · Mistr
 ## Installation
 
 ### Download (recommended)
-Grab the latest release from [Releases](https://github.com/JonatanGhub/PromptFlow-Speech2Text/releases):
+Grab the latest release from [Releases](https://github.com/NeoNexAI/PROMPTFLOW-STT_PROMPT_ENHANCER/releases):
 
 | Platform | File |
 |---|---|
@@ -85,8 +85,8 @@ Grab the latest release from [Releases](https://github.com/JonatanGhub/PromptFlo
 **Prerequisites**: Rust stable · Node.js 20 · system deps per [Tauri prerequisites](https://tauri.app/start/prerequisites/)
 
 ```bash
-git clone https://github.com/JonatanGhub/PromptFlow-Speech2Text.git
-cd PromptFlow-Speech2Text
+git clone https://github.com/NeoNexAI/PROMPTFLOW-STT_PROMPT_ENHANCER.git
+cd PROMPTFLOW-STT_PROMPT_ENHANCER
 npm install
 npm run tauri build
 ```
@@ -138,6 +138,16 @@ See [docs/specs/03_ARCHITECTURE.md](docs/specs/03_ARCHITECTURE.md) for the full 
 
 Full roadmap: [docs/specs/07_ROADMAP.md](docs/specs/07_ROADMAP.md)
 
+### Current status
+
+Text enhancement is functional end-to-end: global hotkey → clipboard → AI →
+clipboard, with **all 12 enhancement modes**, **8 AI providers** (OpenAI,
+Anthropic, Gemini, Groq, Mistral, OpenRouter, Ollama, Custom), keychain-stored
+keys, SQLite usage logging, and server-side Privacy Mode enforcement. Voice
+dictation (STT engines), OCR, the onboarding wizard, the usage dashboard UI and
+the in-app auto-updater are scaffolded but not yet wired — see the roadmap and
+[docs/DECISIONS.md](docs/DECISIONS.md).
+
 ---
 
 ## Documentation
@@ -156,6 +166,8 @@ Full roadmap: [docs/specs/07_ROADMAP.md](docs/specs/07_ROADMAP.md)
 | [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) | Security threat model |
 | [docs/PERFORMANCE.md](docs/PERFORMANCE.md) | Performance targets |
 | [docs/RELEASE.md](docs/RELEASE.md) | Release process |
+| [docs/OPERATIONS.md](docs/OPERATIONS.md) | Build, test, release & support runbook |
+| [docs/DECISIONS.md](docs/DECISIONS.md) | Architecture decision log |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute |
 | [SECURITY.md](SECURITY.md) | Security policy |
 
@@ -168,7 +180,7 @@ We welcome contributions of all sizes! See [CONTRIBUTING.md](CONTRIBUTING.md) fo
 - How to add a new AI provider
 - Branch naming, commit conventions, and test requirements
 
-First-time contributors: look for issues labelled [`good first issue`](https://github.com/JonatanGhub/PromptFlow-Speech2Text/issues?q=label%3A%22good+first+issue%22).
+First-time contributors: look for issues labelled [`good first issue`](https://github.com/NeoNexAI/PROMPTFLOW-STT_PROMPT_ENHANCER/issues?q=label%3A%22good+first+issue%22).
 
 ---
 

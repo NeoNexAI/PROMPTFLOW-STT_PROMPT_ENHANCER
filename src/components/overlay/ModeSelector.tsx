@@ -1,14 +1,7 @@
 import { useRef, KeyboardEvent } from 'react'
 import type { EnhancementMode } from '@/types'
 import { useSettingsStore } from '@/stores/settingsStore'
-
-export const V01_MODES = ['fix_grammar', 'formalize', 'shorten'] as const satisfies readonly EnhancementMode[]
-
-const MODE_LABELS: Record<typeof V01_MODES[number], string> = {
-  fix_grammar: 'Fix grammar',
-  formalize: 'Formalize',
-  shorten: 'Shorten',
-}
+import { MODE_LABELS } from '@/lib/catalog'
 
 interface ModeSelectorProps {
   modes: readonly EnhancementMode[]
@@ -43,7 +36,7 @@ export function ModeSelector({ modes }: ModeSelectorProps) {
     >
       {modes.map((mode, index) => {
         const isActive = mode === activeMode
-        const label = MODE_LABELS[mode as typeof V01_MODES[number]] ?? mode
+        const label = MODE_LABELS[mode] ?? mode
         return (
           <button
             key={mode}

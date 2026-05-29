@@ -1,0 +1,41 @@
+name: STT Provider Request
+description: Propose a new speech-to-text engine integration
+title: "[stt] <name>"
+labels: ["enhancement", "stt"]
+body:
+  - type: input
+    id: engine_name
+    attributes:
+      label: Engine name
+      placeholder: e.g. Rev AI
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      options:
+        - Cloud (batch)
+        - Cloud (streaming / WebSocket)
+        - Local (binary)
+    validations:
+      required: true
+  - type: input
+    id: endpoint
+    attributes:
+      label: API endpoint / binary
+      placeholder: https://api.example.com/v1/transcribe
+    validations:
+      required: true
+  - type: checkboxes
+    id: requirements
+    attributes:
+      label: Requirements
+      options:
+        - label: Requires an API key
+        - label: Can run fully offline (Privacy Mode eligible)
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Languages, latency, auth header, audio format expectations.

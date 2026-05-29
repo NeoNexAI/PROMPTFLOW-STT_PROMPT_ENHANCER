@@ -51,5 +51,45 @@ pub fn build_prompt(mode: &EnhancementMode, text: &str) -> (String, String) {
 mod tests {
     use super::*;
 
-    // Tests for EnhancementMode — implement in unit test phase
+    /// All built-in (non-custom) modes must return a non-empty system prompt
+    /// and pass the input through unchanged as the user message.
+    #[test]
+    fn test_builtin_modes_have_nonempty_system_and_passthrough_user() {
+        let modes = [
+            EnhancementMode::FixGrammar,
+            EnhancementMode::Formalize,
+            EnhancementMode::Shorten,
+            EnhancementMode::Expand,
+            EnhancementMode::Translate,
+            EnhancementMode::Brainstorm,
+            EnhancementMode::ActionItems,
+            EnhancementMode::Summarize,
+            EnhancementMode::CodeReview,
+            EnhancementMode::Simplify,
+            EnhancementMode::Reframe,
+        ];
+        for mode in modes {
+            let (system, user) = build_prompt(&mode, "input text");
+            assert!(
+                !system.is_empty(),
+                "{mode:?} produced an empty system prompt"
+            );
+            assert_eq!(user, "input text", "{mode:?} altered the user message");
+        }
+    }
+
+    #[test]
+    fn test_custom_uses_inner_prompt_as_system() {
+        let (system, user) =
+            build_prompt(&EnhancementMode::Custom("be terse".to_string()), "hello");
+        assert_eq!(system, "be terse");
+        assert_eq!(user, "hello");
+    }
+
+    #[test]
+    fn test_mode_deserializes_from_snake_case() {
+        let mode: EnhancementMode =
+            serde_json::from_value(serde_json::Value::String("action_items".into())).unwrap();
+        assert!(matches!(mode, EnhancementMode::ActionItems));
+    }
 }

@@ -270,7 +270,7 @@ All commands are typed via `lib/tauri.ts`. No component calls `invoke()` with a 
 
 ## 6. `tauri.conf.json` Decisions
 
-- `identifier`: `com.clawd.promptflow-stt`
+- `identifier`: `com.neonexai.promptflow-stt`
 - `productName`: `PromptFlow STT`
 - Window: `decorations: false` (no native title bar — the overlay renders its own chrome), `alwaysOnTop: true` (stays above the user's active application), `transparent: true` (allows rounded-corner blur effect), `resizable: false`, `width: 480`, `height: 320`
 - Enabled plugins: `global-shortcut` (system-wide hotkey registration), `clipboard-manager` (atomic clipboard read/write), `updater` (background auto-update with user-visible changelog)

@@ -28,7 +28,7 @@ pub async fn register_hotkey(
     // Unregister first to make registration idempotent. Without this, calling
     // register_hotkey twice (e.g. via the Settings UI after the startup auto-register
     // in lib.rs) would stack two handlers and fire the event twice per keypress.
-    app.global_shortcut().unregister(sc.clone()).ok();
+    app.global_shortcut().unregister(sc).ok();
 
     app.global_shortcut()
         .on_shortcut(sc, |app, _shortcut, event| {

@@ -2,7 +2,8 @@ import { useEffect } from 'react'
 import { useUIStore } from '@/stores/uiStore'
 import { useSessionStore } from '@/stores/sessionStore'
 import { tauriApi } from '@/lib/tauri'
-import { ModeSelector, V01_MODES } from './ModeSelector'
+import { ModeSelector } from './ModeSelector'
+import { ALL_MODES } from '@/lib/catalog'
 import { TextInput } from './TextInput'
 import { TextOutput } from './TextOutput'
 import { ActionBar } from './ActionBar'
@@ -81,7 +82,7 @@ export function OverlayWindow({ onEnhance }: OverlayWindowProps) {
 
       {/* Content */}
       <div className="flex flex-col gap-2 p-3 flex-1">
-        <ModeSelector modes={V01_MODES} />
+        <ModeSelector modes={ALL_MODES} />
 
         <TextInput
           value={inputText}

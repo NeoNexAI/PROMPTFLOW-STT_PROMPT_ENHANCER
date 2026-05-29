@@ -64,7 +64,7 @@ Tag push (`v*`) triggers the release workflow (`.github/workflows/release.yml`, 
 1. Build matrix: `windows-latest` (`.msi` + `.exe`), `macos-latest` (`.dmg` + `.app`), `ubuntu-22.04` (`.deb` + `AppImage`) — 3 runners in parallel
 2. Each runner: `npm install` → `npm run tauri build` → sign artifacts
 3. Artifacts uploaded to the GitHub Release created by the tag
-4. Auto-updater JSON endpoint (`update.clawd.io/promptflow-stt/latest.json`) updated with new version and artifact URLs
+4. Auto-updater JSON endpoint (`github.com/NeoNexAI/PROMPTFLOW-STT_PROMPT_ENHANCER/releases/latest/download/latest.json`) updated with new version and artifact URLs
 
 ---
 

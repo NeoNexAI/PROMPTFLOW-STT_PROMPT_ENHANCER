@@ -7,8 +7,8 @@ mod error;
 mod hotkeys;
 mod permissions;
 mod providers;
-mod stt;
 mod storage;
+mod stt;
 mod telemetry;
 mod updater;
 
@@ -21,23 +21,28 @@ pub fn run() {
         .setup(|app| {
             use tauri::Emitter;
             use tauri_plugin_clipboard_manager::ClipboardExt;
-            use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
+            use tauri_plugin_global_shortcut::{
+                Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState,
+            };
 
             // Use explicit Code+Modifiers instead of string parsing for reliability
             let shortcut = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::SHIFT), Code::KeyE);
 
             #[cfg(debug_assertions)]
             eprintln!("[PromptFlow] Registering hotkey Ctrl+Shift+E...");
-            app.handle().global_shortcut().on_shortcut(
-                shortcut,
-                |app, _shortcut, event| {
+            app.handle()
+                .global_shortcut()
+                .on_shortcut(shortcut, |app, _shortcut, event| {
                     #[cfg(debug_assertions)]
                     eprintln!("[PromptFlow] Hotkey fired! state={:?}", event.state);
                     if event.state == ShortcutState::Pressed {
                         use tauri::Manager;
                         let text = app.clipboard().read_text().unwrap_or_default();
                         #[cfg(debug_assertions)]
-                        eprintln!("[PromptFlow] Clipboard text: {:?}", &text[..text.len().min(50)]);
+                        eprintln!(
+                            "[PromptFlow] Clipboard text: {:?}",
+                            &text[..text.len().min(50)]
+                        );
                         // Show the window from Rust — don't rely on JS win.show()
                         if let Some(win) = app.get_webview_window("overlay") {
                             let _ = win.show();
@@ -45,8 +50,7 @@ pub fn run() {
                         }
                         let _ = app.emit("hotkey://enhance", text);
                     }
-                },
-            )?;
+                })?;
             #[cfg(debug_assertions)]
             eprintln!("[PromptFlow] Hotkey registered OK");
 

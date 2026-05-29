@@ -23,7 +23,9 @@ pub async fn read_clipboard(app: tauri::AppHandle) -> Result<String, AppError> {
 #[tauri::command]
 pub async fn write_clipboard(app: tauri::AppHandle, text: String) -> Result<(), AppError> {
     if text.trim().is_empty() {
-        return Err(AppError::Clipboard("Cannot write empty text to clipboard".to_string()));
+        return Err(AppError::Clipboard(
+            "Cannot write empty text to clipboard".to_string(),
+        ));
     }
     app.clipboard()
         .write_text(text)

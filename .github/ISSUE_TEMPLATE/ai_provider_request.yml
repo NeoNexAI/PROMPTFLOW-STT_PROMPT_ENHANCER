@@ -1,0 +1,41 @@
+name: AI Provider Request
+description: Propose a new AI provider integration
+title: "[provider] <name>"
+labels: ["enhancement", "provider"]
+body:
+  - type: input
+    id: provider_name
+    attributes:
+      label: Provider name
+      placeholder: e.g. Cohere
+    validations:
+      required: true
+  - type: input
+    id: endpoint
+    attributes:
+      label: Chat-completions endpoint
+      placeholder: https://api.example.com/v1/chat/completions
+    validations:
+      required: true
+  - type: dropdown
+    id: compatibility
+    attributes:
+      label: API compatibility
+      description: Is the request/response OpenAI-compatible?
+      options:
+        - OpenAI-compatible (messages + choices[].message.content)
+        - Custom format (describe below)
+    validations:
+      required: true
+  - type: input
+    id: auth
+    attributes:
+      label: Auth scheme
+      placeholder: "Authorization: Bearer <key> / x-api-key / none"
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Default model, pricing, token-usage fields, anything unusual.

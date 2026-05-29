@@ -60,40 +60,54 @@ impl Default for KeychainStore {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::Once;
 
-    /// Verify that `get_api_key` returns `Ok(None)` for a provider that was
-    /// never stored.  We use a deliberately odd provider name to avoid
-    /// colliding with real OS entries.
+    static INIT: Once = Once::new();
+
+    /// Install the in-memory mock credential store so these tests are
+    /// hermetic — they pass identically on a developer machine with a real
+    /// OS keychain, in a headless CI runner with no secret service, and in a
+    /// sandboxed container. Without this, `keyring::Entry` would attempt to
+    /// reach the platform secret service (D-Bus / Secret Service on Linux)
+    /// and fail with a transport error rather than the expected `NoEntry`.
     ///
-    /// Note: on CI / sandboxed environments the keyring backend may fall back
-    /// to an in-memory store, which makes this a reliable unit-level check.
+    /// `set_default_credential_builder` may only be called before the first
+    /// keyring access in the process, so we guard it with `Once`.
+    fn init_mock_keystore() {
+        INIT.call_once(|| {
+            keyring::set_default_credential_builder(keyring::mock::default_credential_builder());
+        });
+    }
+
+    /// `get_api_key` returns `Ok(None)` for a provider that was never stored —
+    /// the `NoEntry` case must be mapped to `None`, not propagated as `Err`.
     #[test]
     fn test_get_api_key_missing_returns_none() {
+        init_mock_keystore();
         let store = KeychainStore::new();
-        // Attempt to read a key that almost certainly does not exist.
-        // We accept either Ok(None) (no entry) or an Ok(Some(...)) if by
-        // extreme coincidence a real entry exists — the important thing is
-        // that we do NOT panic or return an `Err` for a missing entry.
         let result = store.get_api_key("__promptflow_test_nonexistent_provider__");
         assert!(
-            result.is_ok(),
-            "get_api_key should not propagate NoEntry as an error"
+            matches!(result, Ok(None)),
+            "expected Ok(None), got {result:?}"
         );
     }
 
-    /// Verify that `has_api_key` does not return an error for a missing provider.
-    /// (Cannot assert the exact `false` value without controlling the OS keychain state.)
+    /// `has_api_key` reports `false` (not an error) for a missing provider.
     #[test]
     fn test_has_api_key_missing_does_not_error() {
+        init_mock_keystore();
         let store = KeychainStore::new();
         let result = store.has_api_key("__promptflow_test_nonexistent_provider__");
-        assert!(result.is_ok(), "has_api_key must not error on missing entry");
+        assert!(
+            matches!(result, Ok(false)),
+            "expected Ok(false), got {result:?}"
+        );
     }
 
-    /// Verify that `delete_api_key` is idempotent — deleting a non-existent
-    /// entry must return `Ok(())`.
+    /// `delete_api_key` is idempotent — deleting a non-existent entry returns `Ok(())`.
     #[test]
     fn test_delete_api_key_idempotent() {
+        init_mock_keystore();
         let store = KeychainStore::new();
         let result = store.delete_api_key("__promptflow_test_nonexistent_provider__");
         assert!(
@@ -104,22 +118,21 @@ mod tests {
 
     /// Full round-trip: set → get → has → delete → get again.
     ///
-    /// Skipped when the keyring backend is not available (e.g. headless CI).
-    /// We detect this by trying a set and, if it errors, skipping the rest.
+    /// Requires a real OS keychain because the in-memory mock store uses
+    /// `EntryOnly` persistence (state is not shared across the separate
+    /// `keyring::Entry` instances that `KeychainStore` creates per call).
+    /// Run locally / on a machine with a secret service via:
+    /// `cargo test -- --ignored`.
     #[test]
+    #[ignore = "requires a real OS keychain / secret service"]
     fn test_set_get_delete_round_trip() {
         let store = KeychainStore::new();
         let provider = "__promptflow_test_roundtrip__";
         let secret = "test-secret-value-abc123";
 
-        // Attempt to write; if the OS keychain is unavailable skip gracefully.
-        match store.set_api_key(provider, secret) {
-            Err(_) => {
-                // Keychain not available in this environment — skip.
-                return;
-            }
-            Ok(()) => {}
-        }
+        store
+            .set_api_key(provider, secret)
+            .expect("set_api_key failed");
 
         // Read back and verify.
         let got = store.get_api_key(provider).expect("get_api_key failed");
@@ -128,16 +141,18 @@ mod tests {
         // has_api_key must report true.
         assert!(store.has_api_key(provider).expect("has_api_key failed"));
 
-        // Delete.
-        store.delete_api_key(provider).expect("delete_api_key failed");
-
-        // Second delete is idempotent.
+        // Delete, then a second delete is idempotent.
+        store
+            .delete_api_key(provider)
+            .expect("delete_api_key failed");
         store
             .delete_api_key(provider)
             .expect("second delete_api_key failed");
 
         // After deletion get returns None.
-        let after = store.get_api_key(provider).expect("get_api_key after delete failed");
+        let after = store
+            .get_api_key(provider)
+            .expect("get_api_key after delete failed");
         assert!(after.is_none());
     }
 }
