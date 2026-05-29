@@ -48,9 +48,9 @@ pub async fn enhance_text(
 
     // Step 2: retrieve API key from OS keychain.
     let keychain = KeychainStore::new();
-    let api_key = keychain
-        .get_api_key(&provider)?
-        .ok_or_else(|| AppError::Provider(format!("No API key configured for provider: {provider}")))?;
+    let api_key = keychain.get_api_key(&provider)?.ok_or_else(|| {
+        AppError::Provider(format!("No API key configured for provider: {provider}"))
+    })?;
 
     // Step 3: build provider instance.
     let ai_provider = providers::make_provider(&provider, api_key)?;
@@ -163,7 +163,10 @@ mod tests {
         assert!(result.is_err());
         match result {
             Err(AppError::Provider(msg)) => {
-                assert!(msg.contains("does_not_exist"), "Error message should name the bad mode");
+                assert!(
+                    msg.contains("does_not_exist"),
+                    "Error message should name the bad mode"
+                );
             }
             Err(other) => panic!("Expected AppError::Provider, got {other:?}"),
             Ok(_) => panic!("Expected error, got Ok"),

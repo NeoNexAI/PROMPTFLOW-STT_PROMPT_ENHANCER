@@ -39,8 +39,8 @@ All contributors must follow our [Code of Conduct](CODE_OF_CONDUCT.md). We enfor
 ## Development Setup
 
 ```bash
-git clone https://github.com/JonatanGhub/PromptFlow-Speech2Text.git
-cd PromptFlow-Speech2Text
+git clone https://github.com/NeoNexAI/PROMPTFLOW-STT_PROMPT_ENHANCER.git
+cd PROMPTFLOW-STT_PROMPT_ENHANCER
 nvm use            # Node 20
 npm install
 npm run tauri dev  # hot-reload dev window
@@ -145,7 +145,7 @@ Steps:
 7. Add the engine to `docs/specs/06_AI_INTEGRATIONS.md`
 8. Add at least 2 unit tests (happy path + error path)
 
-Open an [STT Provider Request](https://github.com/JonatanGhub/PromptFlow-Speech2Text/issues/new?template=stt_provider_request.yml) issue first so we can coordinate.
+Open an [STT Provider Request](https://github.com/NeoNexAI/PROMPTFLOW-STT_PROMPT_ENHANCER/issues/new?template=stt_provider_request.yml) issue first so we can coordinate.
 
 ---
 
@@ -172,7 +172,7 @@ Steps:
 6. Add the provider to `docs/specs/06_AI_INTEGRATIONS.md`
 7. Add at least 2 unit tests with mocked HTTP responses
 
-Open an [AI Provider Request](https://github.com/JonatanGhub/PromptFlow-Speech2Text/issues/new?template=ai_provider_request.yml) issue first.
+Open an [AI Provider Request](https://github.com/NeoNexAI/PROMPTFLOW-STT_PROMPT_ENHANCER/issues/new?template=ai_provider_request.yml) issue first.
 
 ---
 

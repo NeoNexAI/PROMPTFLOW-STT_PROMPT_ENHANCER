@@ -31,7 +31,7 @@
 
 ### OS Keychain access
 - **Risk:** Another process on the same machine could request keychain entries for `promptflow-stt/*`.
-- **Mitigation:** The OS keychain is isolated per app bundle identifier (`com.clawd.promptflow-stt`). Other apps cannot access these entries without the user's explicit approval (macOS) or without matching the app's identity (Windows Credential Manager).
+- **Mitigation:** The OS keychain is isolated per app bundle identifier (`com.neonexai.promptflow-stt`). Other apps cannot access these entries without the user's explicit approval (macOS) or without matching the app's identity (Windows Credential Manager).
 
 ### HTTPS to AI APIs
 - **Risk:** A network attacker intercepts the HTTPS connection and reads prompt text or API keys.
@@ -69,4 +69,4 @@ The following threat scenarios are **not mitigated** in this threat model:
 
 ## Security Contact
 
-Report vulnerabilities to `security@clawd.io`. We aim to respond within 72 hours. Please do not open public GitHub issues for security vulnerabilities.
+Report vulnerabilities to GitHub Security Advisories (see `SECURITY.md`). We aim to respond within 72 hours. Please do not open public GitHub issues for security vulnerabilities.

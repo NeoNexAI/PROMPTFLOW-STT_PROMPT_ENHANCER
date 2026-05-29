@@ -147,7 +147,7 @@ API keys are stored in the OS keychain via `storage/keychain.rs` using the key f
 | Data retention | OpenRouter terms; varies by underlying provider |
 | Offline capable | No |
 
-**Notes:** OpenRouter proxies requests to multiple underlying providers. The model field in the request body selects both the model and the routed provider (e.g., `"anthropic/claude-3-haiku"`). `OpenRouterProvider` reads `response.usage.prompt_tokens` and `response.usage.completion_tokens`. Cost is estimated using the per-model rate available from OpenRouter's pricing API, cached at app startup. The Settings page requires the user to enter a model string before enabling OpenRouter. An additional header `HTTP-Referer: https://promptflow-stt.clawd.dev` and `X-Title: PromptFlow STT` is sent per OpenRouter's attribution requirements.
+**Notes:** OpenRouter proxies requests to multiple underlying providers. The model field in the request body selects both the model and the routed provider (e.g., `"anthropic/claude-3-haiku"`). `OpenRouterProvider` reads `response.usage.prompt_tokens` and `response.usage.completion_tokens`. Cost is estimated using the per-model rate available from OpenRouter's pricing API, cached at app startup. The Settings page requires the user to enter a model string before enabling OpenRouter. An additional header `HTTP-Referer: https://github.com/NeoNexAI/PROMPTFLOW-STT_PROMPT_ENHANCER` and `X-Title: PromptFlow STT` is sent per OpenRouter's attribution requirements.
 
 ---
 

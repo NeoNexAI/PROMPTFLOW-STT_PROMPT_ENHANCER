@@ -32,7 +32,7 @@ Opt-in telemetry is sent to PostHog (self-hostable). You can opt out at any time
 | Data | Location | Sensitive? |
 |---|---|---|
 | API keys | OS keychain (macOS Keychain / Windows Credential Manager / libsecret on Linux) | Yes — never written to disk in plaintext |
-| Usage log (tokens, costs, mode, provider) | SQLite at `~/.local/share/com.clawd.promptflow-stt/usage.db` (Linux) or platform equivalent | Low — no text content stored |
+| Usage log (tokens, costs, mode, provider) | SQLite at `~/.local/share/com.neonexai.promptflow-stt/usage.db` (Linux) or platform equivalent | Low — no text content stored |
 | Settings (hotkeys, selected provider, UI prefs) | Non-sensitive JSON config file (Tauri default store) | No |
 | Input / output text | In-memory only, for the duration of the session | Ephemeral — not persisted anywhere |
 
@@ -57,7 +57,7 @@ All data is stored locally on your device. We have no data processor relationshi
 
 ## Deleting your data
 
-- **Usage log:** delete `~/.local/share/com.clawd.promptflow-stt/usage.db` (Linux), `%APPDATA%\com.clawd.promptflow-stt\usage.db` (Windows), or `~/Library/Application Support/com.clawd.promptflow-stt/usage.db` (macOS).
+- **Usage log:** delete `~/.local/share/com.neonexai.promptflow-stt/usage.db` (Linux), `%APPDATA%\com.neonexai.promptflow-stt\usage.db` (Windows), or `~/Library/Application Support/com.neonexai.promptflow-stt/usage.db` (macOS).
 - **API keys:** remove via your OS keychain manager (Keychain Access on macOS, Credential Manager on Windows) — search for `promptflow-stt`.
 - **Settings:** delete the Tauri config directory listed above.
 - **Everything:** use Settings → Reset Application, which deletes all local data and keychain entries.
@@ -66,4 +66,4 @@ All data is stored locally on your device. We have no data processor relationshi
 
 ## Security contacts
 
-Report security issues to `security@clawd.io`. PGP key available on request.
+Report security issues to GitHub Security Advisories (see `SECURITY.md`). PGP key available on request.

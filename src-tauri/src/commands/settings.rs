@@ -58,10 +58,9 @@ pub async fn get_settings(app: AppHandle) -> Result<Settings, AppError> {
 pub async fn set_settings(app: AppHandle, settings: Settings) -> Result<(), AppError> {
     let path = settings_path(&app)?;
     if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent)
-            .map_err(|e| AppError::Storage(e.to_string()))?;
+        std::fs::create_dir_all(parent).map_err(|e| AppError::Storage(e.to_string()))?;
     }
-    let data = serde_json::to_string_pretty(&settings)
-        .map_err(|e| AppError::Storage(e.to_string()))?;
+    let data =
+        serde_json::to_string_pretty(&settings).map_err(|e| AppError::Storage(e.to_string()))?;
     std::fs::write(&path, data).map_err(|e| AppError::Storage(e.to_string()))
 }
