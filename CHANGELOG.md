@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Six new AI providers**: Anthropic, Google Gemini, Ollama (local), Mistral,
+  OpenRouter and a Custom OpenAI-compatible endpoint — alongside OpenAI and Groq
+  (8 total). OpenAI-compatible providers share one HTTP core
+  (`providers/openai_compatible.rs`).
+- **All 12 enhancement modes** are now selectable in the overlay (was 3), with a
+  shared frontend catalog (`src/lib/catalog.ts`) of modes and providers.
+- **SQLite usage logging** (`usage_log`): per-request metadata (mode, provider,
+  tokens, estimated cost, lengths — never text), plus monthly-total and
+  per-provider breakdown queries. Logging is fire-and-forget.
+- **Server-side Privacy Mode enforcement**: `enhance_text` refuses cloud
+  providers while Privacy Mode is on.
+- `Settings::validate()` rejects unknown provider/STT/mode values and empty
+  hotkeys at save time.
+- Custom system prompt and model/base-URL overrides are plumbed through
+  `enhance_text` and `tauriApi.enhanceText`.
+- Multi-OS **release pipeline** (`.github/workflows/release.yml`, signing-ready),
+  issue templates, a Linux dev-setup script (`scripts/setup-linux.sh`), and
+  `docs/OPERATIONS.md` + `docs/DECISIONS.md`.
+
 ### Fixed
 - Bundled app icons are now valid **RGBA** PNG/ICO/ICNS. The previous RGB icons
   caused `tauri::generate_context!` to panic at compile time, breaking every

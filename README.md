@@ -138,6 +138,16 @@ See [docs/specs/03_ARCHITECTURE.md](docs/specs/03_ARCHITECTURE.md) for the full 
 
 Full roadmap: [docs/specs/07_ROADMAP.md](docs/specs/07_ROADMAP.md)
 
+### Current status
+
+Text enhancement is functional end-to-end: global hotkey → clipboard → AI →
+clipboard, with **all 12 enhancement modes**, **8 AI providers** (OpenAI,
+Anthropic, Gemini, Groq, Mistral, OpenRouter, Ollama, Custom), keychain-stored
+keys, SQLite usage logging, and server-side Privacy Mode enforcement. Voice
+dictation (STT engines), OCR, the onboarding wizard, the usage dashboard UI and
+the in-app auto-updater are scaffolded but not yet wired — see the roadmap and
+[docs/DECISIONS.md](docs/DECISIONS.md).
+
 ---
 
 ## Documentation
@@ -156,6 +166,8 @@ Full roadmap: [docs/specs/07_ROADMAP.md](docs/specs/07_ROADMAP.md)
 | [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) | Security threat model |
 | [docs/PERFORMANCE.md](docs/PERFORMANCE.md) | Performance targets |
 | [docs/RELEASE.md](docs/RELEASE.md) | Release process |
+| [docs/OPERATIONS.md](docs/OPERATIONS.md) | Build, test, release & support runbook |
+| [docs/DECISIONS.md](docs/DECISIONS.md) | Architecture decision log |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute |
 | [SECURITY.md](SECURITY.md) | Security policy |
 
