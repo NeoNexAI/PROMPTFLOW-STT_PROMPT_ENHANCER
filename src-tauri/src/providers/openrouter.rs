@@ -37,8 +37,7 @@ impl AIProvider for OpenRouterProvider {
             &[("HTTP-Referer", REFERER), ("X-Title", TITLE)],
             &self.model,
             "openrouter",
-            system,
-            user,
+            (system, user),
         )
         .await
     }

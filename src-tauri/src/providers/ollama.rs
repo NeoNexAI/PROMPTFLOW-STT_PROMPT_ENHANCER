@@ -37,8 +37,7 @@ impl AIProvider for OllamaProvider {
             &[],
             &self.model,
             "ollama",
-            system,
-            user,
+            (system, user),
         )
         .await
     }

@@ -38,8 +38,7 @@ impl AIProvider for MistralProvider {
             &[],
             &self.model,
             "mistral",
-            system,
-            user,
+            (system, user),
         )
         .await
     }

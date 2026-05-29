@@ -40,8 +40,7 @@ impl AIProvider for OpenAIProvider {
             &[],
             &self.model,
             "openai",
-            system,
-            user,
+            (system, user),
         )
         .await
     }

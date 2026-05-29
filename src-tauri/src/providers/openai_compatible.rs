@@ -68,9 +68,11 @@ pub async fn complete(
     extra_headers: &[(&str, &str)],
     model: &str,
     cost_provider_id: &str,
-    system: &str,
-    user: &str,
+    // (system, user) travel together — kept as a tuple to stay within clippy's
+    // argument-count limit and signal that they are one logical input.
+    prompt: (&str, &str),
 ) -> Result<ProviderResponse, AppError> {
+    let (system, user) = prompt;
     let body = ChatRequest {
         model,
         messages: vec![

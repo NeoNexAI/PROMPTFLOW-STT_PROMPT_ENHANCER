@@ -135,23 +135,29 @@ mod tests {
 
     #[test]
     fn test_unknown_provider_rejected() {
-        let mut s = Settings::default();
-        s.provider = "skynet".into();
+        let s = Settings {
+            provider: "skynet".into(),
+            ..Default::default()
+        };
         assert!(s.validate().is_err());
     }
 
     #[test]
     fn test_empty_hotkey_rejected() {
-        let mut s = Settings::default();
-        s.hotkey_enhance = "  ".into();
+        let s = Settings {
+            hotkey_enhance: "  ".into(),
+            ..Default::default()
+        };
         assert!(s.validate().is_err());
     }
 
     #[test]
     fn test_all_known_modes_valid() {
         for m in KNOWN_MODES {
-            let mut s = Settings::default();
-            s.selected_mode = (*m).to_string();
+            let s = Settings {
+                selected_mode: (*m).to_string(),
+                ..Default::default()
+            };
             assert!(s.validate().is_ok(), "{m} should be valid");
         }
     }

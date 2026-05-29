@@ -38,8 +38,7 @@ impl AIProvider for GroqProvider {
             &[],
             &self.model,
             "groq",
-            system,
-            user,
+            (system, user),
         )
         .await
     }

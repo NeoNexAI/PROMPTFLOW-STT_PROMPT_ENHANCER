@@ -49,8 +49,7 @@ impl AIProvider for CustomProvider {
             &[],
             &self.model,
             "custom",
-            system,
-            user,
+            (system, user),
         )
         .await
     }
