@@ -7,21 +7,20 @@ import { useEnhancement } from '@/hooks/useEnhancement'
 import { OverlayWindow } from '@/components/overlay/OverlayWindow'
 import { SettingsWindow } from '@/components/settings/SettingsWindow'
 import { tauriApi } from '@/lib/tauri'
-import type { AIProvider } from '@/types'
-
-/** Providers active in v0.1 — used to pre-check keychain on mount */
-const V01_PROVIDERS: readonly AIProvider[] = ['openai', 'groq']
+import { PROVIDERS } from '@/lib/catalog'
 
 export default function App() {
   const overlayVisible = useUIStore((s) => s.overlayVisible)
   const settingsVisible = useUIStore((s) => s.settingsVisible)
   const setHasApiKey = useSettingsStore((s) => s.setHasApiKey)
 
-  // Pre-check keychain so ApiKeyInput shows the correct initial state
+  // Pre-check keychain so ApiKeyInput shows the correct initial state.
+  // Only providers that actually require a key are checked.
   useEffect(() => {
-    for (const provider of V01_PROVIDERS) {
-      tauriApi.hasApiKey(provider)
-        .then((has) => setHasApiKey(provider, has))
+    for (const { id, requiresApiKey } of PROVIDERS) {
+      if (!requiresApiKey) continue
+      tauriApi.hasApiKey(id)
+        .then((has) => setHasApiKey(id, has))
         .catch(console.error)
     }
   }, [setHasApiKey])

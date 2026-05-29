@@ -1,9 +1,11 @@
+use crate::commands::settings;
 use crate::enhancement::{build_prompt, EnhancementMode};
 use crate::error::AppError;
-use crate::providers;
+use crate::providers::{self, ProviderConfig};
+use crate::storage::db::{Database, UsageEntry};
 use crate::storage::keychain::KeychainStore;
 use serde::{Deserialize, Serialize};
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EnhanceResponse {
@@ -12,59 +14,124 @@ pub struct EnhanceResponse {
     pub cost_usd: f64,
 }
 
-/// Enhances the given text using the specified AI provider and enhancement mode.
+/// Parses a mode string into an [`EnhancementMode`]. `"custom"` carries the
+/// user-supplied system prompt (empty when none was provided).
+fn parse_mode(mode: &str, custom_prompt: Option<String>) -> Result<EnhancementMode, AppError> {
+    if mode == "custom" {
+        return Ok(EnhancementMode::Custom(custom_prompt.unwrap_or_default()));
+    }
+    let mode_value = serde_json::Value::String(mode.to_string());
+    serde_json::from_value(mode_value)
+        .map_err(|_| AppError::Provider(format!("Unknown enhancement mode: {mode}")))
+}
+
+/// Enhances `text` using the specified AI provider and enhancement mode.
 ///
-/// # Steps
-/// 1. Deserialize `mode` string into [`EnhancementMode`].
-///    `"custom"` is handled explicitly because its serde representation
-///    requires an inner string payload that the frontend does not supply in v0.1.
-/// 2. Retrieve the API key for `provider` from the OS keychain.
-/// 3. Instantiate the provider via [`providers::make_provider`].
-/// 4. Build the (system, user) prompt pair via [`enhancement::build_prompt`].
-/// 5. Call the provider's `complete()` method and return the result.
+/// Steps: parse mode → enforce Privacy Mode → fetch the API key (only for
+/// providers that need one) → build the provider → build the prompt → call the
+/// model → log usage to SQLite (fire-and-forget) → return the result.
+///
+/// `custom_prompt` supplies the system prompt for `mode == "custom"`; `model`
+/// and `base_url` are optional provider overrides (a non-default model, or the
+/// Ollama/custom endpoint).
 ///
 /// # Errors
-/// - [`AppError::Provider`] — unknown mode, unknown provider, or missing API key.
+/// - [`AppError::Provider`] — unknown mode/provider, missing key, missing
+///   required config, a Privacy Mode violation, or an upstream API error.
 /// - [`AppError::Storage`] — keychain access failure.
 #[tauri::command]
 pub async fn enhance_text(
-    _app: AppHandle,
+    app: AppHandle,
     text: String,
     mode: String,
     provider: String,
+    custom_prompt: Option<String>,
+    model: Option<String>,
+    base_url: Option<String>,
 ) -> Result<EnhanceResponse, AppError> {
-    // Step 1: parse mode string to EnhancementMode.
-    // "custom" requires special handling because its serde form needs an inner
-    // string (e.g. `{"custom": "...prompt..."}`), which the frontend doesn't
-    // send in v0.1.  We default to an empty inner prompt; the real prompt will
-    // be wired up in a future iteration.
-    let enhancement_mode = if mode == "custom" {
-        EnhancementMode::Custom(String::new())
+    let enhancement_mode = parse_mode(&mode, custom_prompt)?;
+
+    // Privacy Mode enforcement (server-side, independent of the UI selector):
+    // reject any cloud provider while Privacy Mode is enabled.
+    let settings = settings::load(&app)?;
+    if settings.privacy_mode && !providers::is_offline_capable(&provider) {
+        return Err(AppError::Provider(format!(
+            "Privacy Mode is on — {provider} would send data off-device. Use ollama or a localhost custom endpoint."
+        )));
+    }
+
+    // Fetch the API key only for providers that require one.
+    let api_key = if providers::requires_api_key(&provider) {
+        Some(
+            KeychainStore::new()
+                .get_api_key(&provider)?
+                .ok_or_else(|| {
+                    AppError::Provider(format!("No API key configured for provider: {provider}"))
+                })?,
+        )
     } else {
-        let mode_value = serde_json::Value::String(mode.clone());
-        serde_json::from_value(mode_value)
-            .map_err(|_| AppError::Provider(format!("Unknown enhancement mode: {mode}")))?
+        None
     };
 
-    // Step 2: retrieve API key from OS keychain.
-    let keychain = KeychainStore::new();
-    let api_key = keychain.get_api_key(&provider)?.ok_or_else(|| {
-        AppError::Provider(format!("No API key configured for provider: {provider}"))
-    })?;
+    let ai_provider = providers::make_provider(
+        &provider,
+        ProviderConfig {
+            api_key,
+            model,
+            base_url,
+        },
+    )?;
 
-    // Step 3: build provider instance.
-    let ai_provider = providers::make_provider(&provider, api_key)?;
-
-    // Step 4: build prompt and call the AI API.
     let (system, user) = build_prompt(&enhancement_mode, &text);
+    let input_len = text.chars().count() as u32;
     let response = ai_provider.complete(&system, &user).await?;
+    let output_len = response.text.chars().count() as u32;
 
-    // Step 5: return structured response.
+    // Fire-and-forget usage logging: must never delay or fail the response.
+    log_usage_async(&app, &mode, &provider, &response, input_len, output_len);
+
     Ok(EnhanceResponse {
         result: response.text,
         tokens_used: response.tokens_used,
         cost_usd: response.cost_usd,
     })
+}
+
+/// Spawns a background thread that appends a row to the usage database.
+/// Any error is swallowed (logged in debug builds) — logging is best-effort and
+/// must not affect the user-facing enhancement path.
+fn log_usage_async(
+    app: &AppHandle,
+    mode: &str,
+    provider: &str,
+    response: &providers::ProviderResponse,
+    input_len: u32,
+    output_len: u32,
+) {
+    let Ok(dir) = app.path().app_data_dir() else {
+        return;
+    };
+    let entry = UsageEntry {
+        timestamp: chrono::Utc::now().to_rfc3339(),
+        mode: mode.to_string(),
+        provider: provider.to_string(),
+        tokens: response.tokens_used,
+        cost_usd: response.cost_usd,
+        input_len,
+        output_len,
+    };
+    std::thread::spawn(move || {
+        let result = std::fs::create_dir_all(&dir)
+            .map_err(|e| AppError::Storage(e.to_string()))
+            .and_then(|_| Database::open(dir.join("usage.db")))
+            .and_then(|db| db.log_usage(&entry));
+        #[cfg(debug_assertions)]
+        if let Err(e) = result {
+            eprintln!("[PromptFlow] usage logging failed: {e:?}");
+        }
+        #[cfg(not(debug_assertions))]
+        let _ = result;
+    });
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -75,14 +142,11 @@ mod tests {
     use crate::enhancement::{build_prompt, EnhancementMode};
 
     // ── Mode parsing helpers (pure logic, no AppHandle required) ──────────────
+    // Thin wrapper over the production `parse_mode` so the existing call sites
+    // (which pass no custom prompt) exercise the real implementation.
 
     fn parse_mode(mode: &str) -> Result<EnhancementMode, AppError> {
-        if mode == "custom" {
-            return Ok(EnhancementMode::Custom(String::new()));
-        }
-        let mode_value = serde_json::Value::String(mode.to_string());
-        serde_json::from_value(mode_value)
-            .map_err(|_| AppError::Provider(format!("Unknown enhancement mode: {mode}")))
+        super::parse_mode(mode, None)
     }
 
     #[test]
@@ -170,6 +234,15 @@ mod tests {
             }
             Err(other) => panic!("Expected AppError::Provider, got {other:?}"),
             Ok(_) => panic!("Expected error, got Ok"),
+        }
+    }
+
+    #[test]
+    fn test_parse_mode_custom_carries_supplied_prompt() {
+        let result = super::parse_mode("custom", Some("You are a pirate.".to_string()));
+        match result.unwrap() {
+            EnhancementMode::Custom(inner) => assert_eq!(inner, "You are a pirate."),
+            other => panic!("Expected Custom, got {other:?}"),
         }
     }
 

@@ -1,9 +1,26 @@
 import { invoke } from '@tauri-apps/api/core'
 import type { EnhanceResponse, Settings, STTStatus } from '@/types'
 
+/** Optional per-request provider/mode overrides for {@link tauriApi.enhanceText}. */
+export interface EnhanceOptions {
+  /** System prompt used when `mode === 'custom'`. */
+  customPrompt?: string
+  /** Model override (e.g. `gpt-4o`, or the required model for OpenRouter). */
+  model?: string
+  /** Base URL override for the Ollama or custom provider. */
+  baseUrl?: string
+}
+
 export const tauriApi = {
-  enhanceText: (text: string, mode: string, provider: string) =>
-    invoke<EnhanceResponse>('enhance_text', { text, mode, provider }),
+  enhanceText: (text: string, mode: string, provider: string, opts: EnhanceOptions = {}) =>
+    invoke<EnhanceResponse>('enhance_text', {
+      text,
+      mode,
+      provider,
+      customPrompt: opts.customPrompt ?? null,
+      model: opts.model ?? null,
+      baseUrl: opts.baseUrl ?? null,
+    }),
 
   startRecording: (engine: string) =>
     invoke<void>('start_recording', { engine }),

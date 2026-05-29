@@ -3,18 +3,18 @@ use crate::providers::openai_compatible::{self, Auth};
 use crate::providers::{AIProvider, ProviderResponse};
 use async_trait::async_trait;
 
-const DEFAULT_MODEL: &str = "llama-3.1-8b-instant";
-const ENDPOINT: &str = "https://api.groq.com/openai/v1/chat/completions";
+const DEFAULT_MODEL: &str = "mistral-small-latest";
+const ENDPOINT: &str = "https://api.mistral.ai/v1/chat/completions";
 
-/// Groq chat-completions provider via Groq's OpenAI-compatible API. Defaults to
-/// `llama-3.1-8b-instant` for sub-500 ms LPU inference.
-pub struct GroqProvider {
+/// Mistral AI chat-completions provider (OpenAI-compatible). Defaults to
+/// `mistral-small-latest`.
+pub struct MistralProvider {
     api_key: String,
     model: String,
     client: reqwest::Client,
 }
 
-impl GroqProvider {
+impl MistralProvider {
     pub fn new(api_key: String) -> Self {
         Self::with_model(api_key, None)
     }
@@ -29,7 +29,7 @@ impl GroqProvider {
 }
 
 #[async_trait]
-impl AIProvider for GroqProvider {
+impl AIProvider for MistralProvider {
     async fn complete(&self, system: &str, user: &str) -> Result<ProviderResponse, AppError> {
         openai_compatible::complete(
             &self.client,
@@ -37,7 +37,7 @@ impl AIProvider for GroqProvider {
             Auth::Bearer(&self.api_key),
             &[],
             &self.model,
-            "groq",
+            "mistral",
             system,
             user,
         )
@@ -45,7 +45,7 @@ impl AIProvider for GroqProvider {
     }
 
     fn provider_id(&self) -> &'static str {
-        "groq"
+        "mistral"
     }
 
     fn requires_api_key(&self) -> bool {
@@ -57,22 +57,16 @@ impl AIProvider for GroqProvider {
 mod tests {
     use super::*;
 
-    fn make_provider() -> GroqProvider {
-        GroqProvider::new("test-key".to_string())
+    #[test]
+    fn test_mistral_provider_id() {
+        assert_eq!(MistralProvider::new("k".into()).provider_id(), "mistral");
     }
 
     #[test]
-    fn test_groq_provider_id_is_correct() {
-        assert_eq!(make_provider().provider_id(), "groq");
-    }
-
-    #[test]
-    fn test_groq_requires_api_key() {
-        assert!(make_provider().requires_api_key());
-    }
-
-    #[test]
-    fn test_groq_default_model() {
-        assert_eq!(make_provider().model, "llama-3.1-8b-instant");
+    fn test_mistral_default_model() {
+        assert_eq!(
+            MistralProvider::new("k".into()).model,
+            "mistral-small-latest"
+        );
     }
 }
