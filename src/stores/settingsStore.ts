@@ -13,6 +13,8 @@ interface SettingsState {
   hotkeyDictate: string
   // hasApiKey tracks whether a key exists in the OS keychain — never stores the key itself
   hasApiKey: Record<AIProvider, boolean>
+  /** True once the first-run onboarding wizard has been completed. Persisted. */
+  onboarded: boolean
   setProvider: (p: AIProvider) => void
   setSttEngine: (e: STTEngine) => void
   setSelectedMode: (m: EnhancementMode) => void
@@ -20,6 +22,7 @@ interface SettingsState {
   setHotkeyEnhance: (k: string) => void
   setHotkeyDictate: (k: string) => void
   setHasApiKey: (provider: AIProvider, hasKey: boolean) => void
+  setOnboarded: (v: boolean) => void
 }
 
 const defaultHasApiKey: Record<AIProvider, boolean> = {
@@ -43,6 +46,7 @@ export const useSettingsStore = create<SettingsState>()(
       hotkeyEnhance: 'CommandOrControl+Shift+E',
       hotkeyDictate: 'CommandOrControl+Shift+D',
       hasApiKey: defaultHasApiKey,
+      onboarded: false,
       setProvider: (provider) => set({ provider }),
       setSttEngine: (sttEngine) => set({ sttEngine }),
       setSelectedMode: (selectedMode) => set({ selectedMode }),
@@ -53,6 +57,7 @@ export const useSettingsStore = create<SettingsState>()(
         set((state) => ({
           hasApiKey: { ...state.hasApiKey, [provider]: hasKey },
         })),
+      setOnboarded: (onboarded) => set({ onboarded }),
     }),
     { name: 'promptflow-settings' }
   )
