@@ -37,11 +37,8 @@ export const tauriApi = {
   setSettings: (settings: Settings) =>
     invoke<void>('set_settings', { settings }),
 
-  registerHotkey: (id: string, shortcut: string) =>
-    invoke<void>('register_hotkey', { id, shortcut }),
-
-  unregisterHotkey: (id: string) =>
-    invoke<void>('unregister_hotkey', { id }),
+  setHotkeys: (enhance: string, dictate: string) =>
+    invoke<void>('set_hotkeys', { enhance, dictate }),
 
   readClipboard: () =>
     invoke<string>('read_clipboard'),

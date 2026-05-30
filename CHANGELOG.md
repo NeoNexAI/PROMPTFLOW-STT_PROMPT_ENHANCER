@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — Configurable hotkeys (v0.2 complete)
+- The enhance and dictate global hotkeys are now **editable in Settings** and
+  applied immediately. A reusable `register_pair` registers both shortcuts (used
+  at startup with the defaults and by the new `set_hotkeys` command); both combos
+  are validated before anything is unregistered, so a bad combo leaves the
+  previous bindings intact and surfaces an error.
+
 ### Added — Settings UX (closing v0.2)
 - **Privacy Mode toggle** in Settings; turning it on restricts the provider/STT
   selectors to offline options (and auto-switches to Ollama / whisper.cpp if

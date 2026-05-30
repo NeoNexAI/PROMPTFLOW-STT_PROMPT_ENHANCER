@@ -25,6 +25,10 @@ export function SettingsWindow() {
   const setWhisperCppBinary = useSettingsStore((s) => s.setWhisperCppBinary)
   const whisperCppModel = useSettingsStore((s) => s.whisperCppModel)
   const setWhisperCppModel = useSettingsStore((s) => s.setWhisperCppModel)
+  const hotkeyEnhance = useSettingsStore((s) => s.hotkeyEnhance)
+  const setHotkeyEnhance = useSettingsStore((s) => s.setHotkeyEnhance)
+  const hotkeyDictate = useSettingsStore((s) => s.hotkeyDictate)
+  const setHotkeyDictate = useSettingsStore((s) => s.setHotkeyDictate)
   const setSettingsVisible = useUIStore((s) => s.setSettingsVisible)
   const setOverlayVisible = useUIStore((s) => s.setOverlayVisible)
 
@@ -187,7 +191,38 @@ export function SettingsWindow() {
             </div>
           )}
           <p className="text-xs text-muted-foreground mt-1">
-            Press Ctrl/Cmd+Shift+D or the mic button to dictate.
+            Press the dictate hotkey or the mic button to dictate.
+          </p>
+        </section>
+
+        {/* Hotkeys */}
+        <section>
+          <h2 className="text-sm font-medium text-foreground mb-2">Hotkeys</h2>
+          <div className="flex flex-col gap-2">
+            <label className="flex flex-col gap-1">
+              <span className="text-xs text-muted-foreground">Enhance</span>
+              <input
+                className={inputClass}
+                value={hotkeyEnhance}
+                onChange={(e) => setHotkeyEnhance(e.target.value)}
+                placeholder="CommandOrControl+Shift+E"
+                aria-label="Enhance hotkey"
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-xs text-muted-foreground">Dictate</span>
+              <input
+                className={inputClass}
+                value={hotkeyDictate}
+                onChange={(e) => setHotkeyDictate(e.target.value)}
+                placeholder="CommandOrControl+Shift+D"
+                aria-label="Dictate hotkey"
+              />
+            </label>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Use names like <code>CommandOrControl</code>, <code>Shift</code>, <code>Alt</code> joined
+            with <code>+</code> (e.g. <code>CommandOrControl+Shift+E</code>). Changes apply immediately.
           </p>
         </section>
       </div>
