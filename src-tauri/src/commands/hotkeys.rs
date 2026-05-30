@@ -1,81 +1,77 @@
 use crate::error::AppError;
-use tauri::{AppHandle, Emitter};
-use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
+use tauri::{AppHandle, Emitter, Manager};
+use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
-/// Registers a global hotkey shortcut by its string representation.
-///
-/// When the shortcut is pressed, reads the current clipboard text and emits a
-/// `hotkey://enhance` event with that text as the payload. If the clipboard
-/// read fails the event is still emitted with an empty string, so the overlay
-/// can open without crashing.
-///
-/// # Errors
-/// Returns [`AppError::Hotkey`] if the shortcut string cannot be parsed or if
-/// the OS-level registration fails (e.g. the shortcut is already taken by
-/// another application).
-#[tauri::command]
-pub async fn register_hotkey(
-    app: AppHandle,
-    _id: String,
-    shortcut: String,
-) -> Result<(), AppError> {
-    use tauri_plugin_clipboard_manager::ClipboardExt;
-
-    let sc = shortcut
-        .parse::<tauri_plugin_global_shortcut::Shortcut>()
-        .map_err(|e| AppError::Hotkey(e.to_string()))?;
-
-    // Unregister first to make registration idempotent. Without this, calling
-    // register_hotkey twice (e.g. via the Settings UI after the startup auto-register
-    // in lib.rs) would stack two handlers and fire the event twice per keypress.
-    app.global_shortcut().unregister(sc).ok();
-
-    app.global_shortcut()
-        .on_shortcut(sc, |app, _shortcut, event| {
-            if event.state == ShortcutState::Pressed {
-                let text = app.clipboard().read_text().unwrap_or_default();
-                let _ = app.emit("hotkey://enhance", text);
-            }
-        })
-        .map_err(|e| AppError::Hotkey(e.to_string()))
+fn show_overlay(app: &AppHandle) {
+    if let Some(win) = app.get_webview_window("overlay") {
+        let _ = win.show();
+        let _ = win.set_focus();
+    }
 }
 
-/// Unregisters all previously registered global shortcuts.
+/// Registers the enhance and dictate global shortcuts from their string forms
+/// (e.g. `"CommandOrControl+Shift+E"`), replacing any previously registered
+/// shortcuts. The handlers show the overlay and emit `hotkey://enhance` (with
+/// the clipboard text) / `hotkey://dictate`.
 ///
-/// For v0.1 the `id` parameter is accepted for API compatibility but ignored;
-/// all shortcuts registered by this process are removed.
+/// Both strings are parsed *before* anything is unregistered, so an invalid
+/// hotkey leaves the existing bindings untouched.
 ///
 /// # Errors
-/// Returns [`AppError::Hotkey`] if the OS-level unregistration fails.
+/// [`AppError::Hotkey`] if either string fails to parse or OS registration fails.
+pub fn register_pair(app: &AppHandle, enhance: &str, dictate: &str) -> Result<(), AppError> {
+    use tauri_plugin_clipboard_manager::ClipboardExt;
+
+    let enhance_sc = enhance
+        .parse::<Shortcut>()
+        .map_err(|e| AppError::Hotkey(format!("invalid enhance hotkey: {e}")))?;
+    let dictate_sc = dictate
+        .parse::<Shortcut>()
+        .map_err(|e| AppError::Hotkey(format!("invalid dictate hotkey: {e}")))?;
+
+    let gs = app.global_shortcut();
+    gs.unregister_all().ok();
+
+    gs.on_shortcut(enhance_sc, |app, _shortcut, event| {
+        if event.state == ShortcutState::Pressed {
+            let text = app.clipboard().read_text().unwrap_or_default();
+            show_overlay(app);
+            let _ = app.emit("hotkey://enhance", text);
+        }
+    })
+    .map_err(|e| AppError::Hotkey(e.to_string()))?;
+
+    gs.on_shortcut(dictate_sc, |app, _shortcut, event| {
+        if event.state == ShortcutState::Pressed {
+            show_overlay(app);
+            let _ = app.emit("hotkey://dictate", ());
+        }
+    })
+    .map_err(|e| AppError::Hotkey(e.to_string()))?;
+
+    Ok(())
+}
+
+/// Sets both global hotkeys at once. Called by the frontend on startup and
+/// whenever the user edits a hotkey in Settings.
 #[tauri::command]
-pub async fn unregister_hotkey(app: AppHandle, _id: String) -> Result<(), AppError> {
-    app.global_shortcut()
-        .unregister_all()
-        .map_err(|e| AppError::Hotkey(e.to_string()))
+pub async fn set_hotkeys(app: AppHandle, enhance: String, dictate: String) -> Result<(), AppError> {
+    register_pair(&app, &enhance, &dictate)
 }
 
 #[cfg(test)]
 mod tests {
     use tauri_plugin_global_shortcut::Shortcut;
 
-    /// An invalid shortcut string must fail at parse time so that
-    /// `register_hotkey` never reaches the OS registration step.
     #[test]
-    fn test_register_hotkey_invalid_shortcut_returns_error() {
-        let result = "not-a-real-shortcut!!!".parse::<Shortcut>();
-        assert!(
-            result.is_err(),
-            "Parsing an invalid shortcut string should return an error"
-        );
+    fn test_invalid_shortcut_returns_error() {
+        assert!("not-a-real-shortcut!!!".parse::<Shortcut>().is_err());
     }
 
-    /// A well-formed shortcut string must parse successfully.
     #[test]
-    fn test_register_hotkey_valid_shortcut_parses_ok() {
-        let result = "CommandOrControl+Shift+E".parse::<Shortcut>();
-        assert!(
-            result.is_ok(),
-            "Parsing a valid shortcut string should succeed"
-        );
+    fn test_valid_shortcuts_parse() {
+        assert!("CommandOrControl+Shift+E".parse::<Shortcut>().is_ok());
+        assert!("CommandOrControl+Shift+D".parse::<Shortcut>().is_ok());
+        assert!("Alt+Space".parse::<Shortcut>().is_ok());
     }
 }

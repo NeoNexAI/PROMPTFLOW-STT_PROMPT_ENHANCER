@@ -2,6 +2,8 @@ import { useEffect } from 'react'
 import { listen } from '@tauri-apps/api/event'
 import { useUIStore } from '@/stores/uiStore'
 import { useSessionStore } from '@/stores/sessionStore'
+import { useSettingsStore } from '@/stores/settingsStore'
+import { tauriApi } from '@/lib/tauri'
 
 /**
  * Subscribes to backend `hotkey://enhance` events emitted when the OS hotkey fires.
@@ -20,8 +22,21 @@ import { useSessionStore } from '@/stores/sessionStore'
 export function useHotkeys() {
   const setOverlayVisible = useUIStore((s) => s.setOverlayVisible)
   const clearError = useUIStore((s) => s.clearError)
+  const setError = useUIStore((s) => s.setError)
   const setInputText = useSessionStore((s) => s.setInputText)
   const setOutputText = useSessionStore((s) => s.setOutputText)
+  const hotkeyEnhance = useSettingsStore((s) => s.hotkeyEnhance)
+  const hotkeyDictate = useSettingsStore((s) => s.hotkeyDictate)
+
+  // Apply the user's hotkeys on mount and whenever they change. A bad combo
+  // surfaces as an error and leaves the previous bindings active (the backend
+  // validates before unregistering).
+  useEffect(() => {
+    tauriApi.setHotkeys(hotkeyEnhance, hotkeyDictate).catch((e: unknown) => {
+      const msg = e && typeof e === 'object' && 'message' in e ? String((e as { message: unknown }).message) : String(e)
+      setError(`Hotkey error: ${msg}`)
+    })
+  }, [hotkeyEnhance, hotkeyDictate, setError])
 
   useEffect(() => {
     const unlistenPromise = listen<string>('hotkey://enhance', (event) => {
