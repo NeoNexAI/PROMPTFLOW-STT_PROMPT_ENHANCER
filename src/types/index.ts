@@ -60,4 +60,6 @@ export interface Settings {
   privacy_mode: boolean
   hotkey_enhance: string
   hotkey_dictate: string
+  whisper_cpp_binary: string
+  whisper_cpp_model: string
 }

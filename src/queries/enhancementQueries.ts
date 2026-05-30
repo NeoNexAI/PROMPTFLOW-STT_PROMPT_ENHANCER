@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import { tauriApi } from '@/lib/tauri'
+import { tauriApi, type EnhanceOptions } from '@/lib/tauri'
 import { useSessionStore } from '@/stores/sessionStore'
 import { useUIStore } from '@/stores/uiStore'
 import type { EnhancementMode, AIProvider } from '@/types'
@@ -14,11 +14,13 @@ export function useEnhanceMutation() {
       text,
       mode,
       provider,
+      opts,
     }: {
       text: string
       mode: EnhancementMode
       provider: AIProvider
-    }) => tauriApi.enhanceText(text, mode, provider),
+      opts?: EnhanceOptions
+    }) => tauriApi.enhanceText(text, mode, provider, opts),
     onMutate: () => {
       setIsLoading(true)
       setError(null)

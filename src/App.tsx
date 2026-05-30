@@ -5,6 +5,7 @@ import { useSettingsStore } from '@/stores/settingsStore'
 import { useHotkeys } from '@/hooks/useHotkeys'
 import { useEnhancement } from '@/hooks/useEnhancement'
 import { useDictation } from '@/hooks/useSTT'
+import { useBackendSettingsSync } from '@/hooks/useBackendSync'
 import { OverlayWindow } from '@/components/overlay/OverlayWindow'
 import { SettingsWindow } from '@/components/settings/SettingsWindow'
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard'
@@ -49,6 +50,8 @@ export default function App() {
   useHotkeys()
   // Voice dictation: wires the dictate hotkey + stt://done listener
   const { toggle: toggleDictation } = useDictation()
+  // Mirror non-secret settings (Privacy Mode, whisper.cpp paths, hotkeys) to the backend
+  useBackendSettingsSync()
 
   const { enhance } = useEnhancement()
   // Stable reference so OverlayWindow doesn't re-render on every parent update
