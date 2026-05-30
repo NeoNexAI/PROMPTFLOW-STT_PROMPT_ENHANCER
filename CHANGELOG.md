@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — STT depth (closing v0.2)
+- **VAD auto-stop**: recording stops automatically after ~1.5 s of silence
+  following speech; the backend emits `stt://autostop` and the frontend
+  finalizes the transcript just like a manual stop. (`audio/vad.rs` +
+  `audio/capture.rs`, unit-tested.)
+- **whisper.cpp (local STT)**: offline transcription by invoking the
+  `whisper-cli` binary; audio is resampled to 16 kHz (new unit-tested
+  `resample_linear`) and written to a temp WAV. Binary/model paths come from
+  settings. `make_engine` now takes an `EngineConfig`.
+
 ### Added — First-run onboarding
 - A 3-step onboarding wizard (choose provider + save API key → review hotkeys →
   run a live test enhancement) shown automatically on first launch and skippable.
