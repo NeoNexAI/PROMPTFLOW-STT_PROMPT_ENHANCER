@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — First-run onboarding
+- A 3-step onboarding wizard (choose provider + save API key → review hotkeys →
+  run a live test enhancement) shown automatically on first launch and skippable.
+  Completion is persisted (`onboarded`), so the window opens straight into the
+  wizard until the user is set up.
+
 ### Added — Voice dictation (v0.2)
 - **Whisper API STT engine**: captured audio is encoded to WAV (new
   `audio/wav.rs`, unit-tested) and uploaded as multipart/form-data; shares the

@@ -7,13 +7,17 @@ import { useEnhancement } from '@/hooks/useEnhancement'
 import { useDictation } from '@/hooks/useSTT'
 import { OverlayWindow } from '@/components/overlay/OverlayWindow'
 import { SettingsWindow } from '@/components/settings/SettingsWindow'
+import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard'
 import { tauriApi } from '@/lib/tauri'
 import { PROVIDERS } from '@/lib/catalog'
 
 export default function App() {
   const overlayVisible = useUIStore((s) => s.overlayVisible)
   const settingsVisible = useUIStore((s) => s.settingsVisible)
+  const onboardingVisible = useUIStore((s) => s.onboardingVisible)
+  const setOnboardingVisible = useUIStore((s) => s.setOnboardingVisible)
   const setHasApiKey = useSettingsStore((s) => s.setHasApiKey)
+  const onboarded = useSettingsStore((s) => s.onboarded)
 
   // Pre-check keychain so ApiKeyInput shows the correct initial state.
   // Only providers that actually require a key are checked.
@@ -26,15 +30,20 @@ export default function App() {
     }
   }, [setHasApiKey])
 
+  // First run: show the onboarding wizard until it's completed.
+  useEffect(() => {
+    if (!onboarded) setOnboardingVisible(true)
+  }, [onboarded, setOnboardingVisible])
+
   // Sync Tauri window visibility with the React store
   useEffect(() => {
     const win = getCurrentWindow()
-    if (overlayVisible || settingsVisible) {
+    if (overlayVisible || settingsVisible || onboardingVisible) {
       win.show().catch(console.error)
     } else {
       win.hide().catch(console.error)
     }
-  }, [overlayVisible, settingsVisible])
+  }, [overlayVisible, settingsVisible, onboardingVisible])
 
   // Subscribe to hotkey events emitted by the Rust backend
   useHotkeys()
@@ -45,6 +54,11 @@ export default function App() {
   // Stable reference so OverlayWindow doesn't re-render on every parent update
   const handleEnhance = useCallback(() => { enhance() }, [enhance])
   const handleDictate = useCallback(() => { toggleDictation() }, [toggleDictation])
+
+  // Onboarding takes over the window when active.
+  if (onboardingVisible) {
+    return <OnboardingWizard />
+  }
 
   return (
     <>
