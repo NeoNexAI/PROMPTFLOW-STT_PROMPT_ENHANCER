@@ -58,17 +58,19 @@ export interface STTEngineMeta {
   label: string
   /** Whether the engine is wired up end-to-end today. */
   implemented: boolean
+  /** Whether it runs fully offline (eligible for Privacy Mode). */
+  offline: boolean
 }
 
 /** STT engines, in display order. Only the implemented ones are selectable. */
 export const STT_ENGINES: readonly STTEngineMeta[] = [
-  { id: 'whisper_api', label: 'Whisper API (OpenAI, cloud)', implemented: true },
-  { id: 'web_speech', label: 'Web Speech (browser, no key)', implemented: true },
-  { id: 'whisper_cpp', label: 'whisper.cpp (local) — coming soon', implemented: false },
-  { id: 'deepgram', label: 'Deepgram — coming soon', implemented: false },
-  { id: 'assembly_ai', label: 'AssemblyAI — coming soon', implemented: false },
-  { id: 'google_stt', label: 'Google Speech — coming soon', implemented: false },
-  { id: 'azure_stt', label: 'Azure Speech — coming soon', implemented: false },
+  { id: 'whisper_api', label: 'Whisper API (OpenAI, cloud)', implemented: true, offline: false },
+  { id: 'web_speech', label: 'Web Speech (browser, no key)', implemented: true, offline: true },
+  { id: 'whisper_cpp', label: 'whisper.cpp (local)', implemented: true, offline: true },
+  { id: 'deepgram', label: 'Deepgram — coming soon', implemented: false, offline: false },
+  { id: 'assembly_ai', label: 'AssemblyAI — coming soon', implemented: false, offline: false },
+  { id: 'google_stt', label: 'Google Speech — coming soon', implemented: false, offline: false },
+  { id: 'azure_stt', label: 'Azure Speech — coming soon', implemented: false, offline: false },
 ]
 
 const PROVIDER_BY_ID = new Map(PROVIDERS.map((p) => [p.id, p]))

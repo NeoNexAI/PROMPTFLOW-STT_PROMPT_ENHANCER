@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — Settings UX (closing v0.2)
+- **Privacy Mode toggle** in Settings; turning it on restricts the provider/STT
+  selectors to offline options (and auto-switches to Ollama / whisper.cpp if
+  needed). Backend enforcement was already in place.
+- **OpenRouter / Custom configuration**: model field (OpenRouter) and base-URL +
+  model fields (Custom), so those providers are now usable from the UI.
+- **Custom-mode system prompt** textarea (threaded through `enhance_text`).
+- **whisper.cpp paths** (binary + model) surfaced in Settings.
+- **Frontend→backend settings sync** (`useBackendSettingsSync`): mirrors
+  Privacy Mode, the whisper.cpp paths and hotkeys into the Rust `settings.json`
+  so the backend actually sees them (the store otherwise persists to
+  localStorage only).
+
 ### Added — STT depth (closing v0.2)
 - **VAD auto-stop**: recording stops automatically after ~1.5 s of silence
   following speech; the backend emits `stt://autostop` and the frontend

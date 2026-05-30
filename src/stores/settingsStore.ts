@@ -15,6 +15,15 @@ interface SettingsState {
   hasApiKey: Record<AIProvider, boolean>
   /** True once the first-run onboarding wizard has been completed. Persisted. */
   onboarded: boolean
+  /** Per-provider model override ('' / missing = provider default). */
+  models: Partial<Record<AIProvider, string>>
+  /** Base URL for the Custom provider (OpenAI-compatible endpoint root). */
+  customBaseUrl: string
+  /** System prompt used by the Custom enhancement mode. */
+  customPrompt: string
+  /** Local whisper.cpp binary + model paths (mirrored to the backend). */
+  whisperCppBinary: string
+  whisperCppModel: string
   setProvider: (p: AIProvider) => void
   setSttEngine: (e: STTEngine) => void
   setSelectedMode: (m: EnhancementMode) => void
@@ -23,6 +32,11 @@ interface SettingsState {
   setHotkeyDictate: (k: string) => void
   setHasApiKey: (provider: AIProvider, hasKey: boolean) => void
   setOnboarded: (v: boolean) => void
+  setModel: (provider: AIProvider, model: string) => void
+  setCustomBaseUrl: (url: string) => void
+  setCustomPrompt: (p: string) => void
+  setWhisperCppBinary: (p: string) => void
+  setWhisperCppModel: (p: string) => void
 }
 
 const defaultHasApiKey: Record<AIProvider, boolean> = {
@@ -47,6 +61,11 @@ export const useSettingsStore = create<SettingsState>()(
       hotkeyDictate: 'CommandOrControl+Shift+D',
       hasApiKey: defaultHasApiKey,
       onboarded: false,
+      models: {},
+      customBaseUrl: '',
+      customPrompt: '',
+      whisperCppBinary: '',
+      whisperCppModel: '',
       setProvider: (provider) => set({ provider }),
       setSttEngine: (sttEngine) => set({ sttEngine }),
       setSelectedMode: (selectedMode) => set({ selectedMode }),
@@ -58,6 +77,12 @@ export const useSettingsStore = create<SettingsState>()(
           hasApiKey: { ...state.hasApiKey, [provider]: hasKey },
         })),
       setOnboarded: (onboarded) => set({ onboarded }),
+      setModel: (provider, model) =>
+        set((state) => ({ models: { ...state.models, [provider]: model } })),
+      setCustomBaseUrl: (customBaseUrl) => set({ customBaseUrl }),
+      setCustomPrompt: (customPrompt) => set({ customPrompt }),
+      setWhisperCppBinary: (whisperCppBinary) => set({ whisperCppBinary }),
+      setWhisperCppModel: (whisperCppModel) => set({ whisperCppModel }),
     }),
     { name: 'promptflow-settings' }
   )
