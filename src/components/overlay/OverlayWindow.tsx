@@ -10,9 +10,10 @@ import { ActionBar } from './ActionBar'
 
 interface OverlayWindowProps {
   onEnhance: () => void
+  onDictate: () => void
 }
 
-export function OverlayWindow({ onEnhance }: OverlayWindowProps) {
+export function OverlayWindow({ onEnhance, onDictate }: OverlayWindowProps) {
   const isLoading = useUIStore((s) => s.isLoading)
   const errorMessage = useUIStore((s) => s.errorMessage)
   const setOverlayVisible = useUIStore((s) => s.setOverlayVisible)
@@ -20,6 +21,7 @@ export function OverlayWindow({ onEnhance }: OverlayWindowProps) {
 
   const inputText = useSessionStore((s) => s.inputText)
   const outputText = useSessionStore((s) => s.outputText)
+  const isRecording = useSessionStore((s) => s.isRecording)
   const setInputText = useSessionStore((s) => s.setInputText)
   const reset = useSessionStore((s) => s.reset)
 
@@ -56,7 +58,15 @@ export function OverlayWindow({ onEnhance }: OverlayWindowProps) {
         data-tauri-drag-region
         className="h-8 w-full flex items-center justify-between px-3 shrink-0 cursor-move"
       >
-        <span className="text-xs text-muted-foreground select-none" data-tauri-drag-region>⠿ PromptFlow</span>
+        <span className="text-xs text-muted-foreground select-none flex items-center gap-2" data-tauri-drag-region>
+          ⠿ PromptFlow
+          {isRecording && (
+            <span role="status" aria-label="Recording" className="flex items-center gap-1 text-destructive">
+              <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
+              Recording
+            </span>
+          )}
+        </span>
         <button
           onClick={() => { setOverlayVisible(false); setSettingsVisible(true) }}
           aria-label="Open settings"
@@ -108,7 +118,9 @@ export function OverlayWindow({ onEnhance }: OverlayWindowProps) {
           onEnhance={onEnhance}
           onCopy={() => { void handleCopy() }}
           onClear={handleClear}
+          onDictate={onDictate}
           isLoading={isLoading}
+          isRecording={isRecording}
           hasOutput={!!outputText}
         />
       </div>

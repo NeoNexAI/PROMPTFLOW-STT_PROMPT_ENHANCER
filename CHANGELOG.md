@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — Voice dictation (v0.2)
+- **Whisper API STT engine**: captured audio is encoded to WAV (new
+  `audio/wav.rs`, unit-tested) and uploaded as multipart/form-data; shares the
+  OpenAI key.
+- **Web Speech engine**: browser `SpeechRecognition` streamed directly into the
+  input field (`src/lib/speech.ts`), no key or backend required.
+- **Microphone capture** via `cpal` on a dedicated thread (`audio/capture.rs`),
+  with mono downmixing for F32/I16/U16 inputs.
+- **Recording commands** (`start_recording`/`stop_recording`) backed by managed
+  Tauri state; `stop_recording` transcribes and emits `stt://done`.
+- **STT engine factory** + real `check_stt_status`; `Ctrl/Cmd+Shift+D` dictate
+  hotkey; a mic toggle button and a "Recording" badge in the overlay; an STT
+  engine selector in Settings.
+
 ### Added
 - **Six new AI providers**: Anthropic, Google Gemini, Ollama (local), Mistral,
   OpenRouter and a Custom OpenAI-compatible endpoint — alongside OpenAI and Groq

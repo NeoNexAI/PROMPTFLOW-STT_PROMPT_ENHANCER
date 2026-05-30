@@ -14,10 +14,13 @@ mod updater;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    use std::sync::Mutex;
+
     tauri::Builder::default()
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_clipboard_manager::init())
-        // updater: stub for future sprints — plugin requires config; skip for v0.1
+        // updater: disabled until a signing keypair exists — see docs/DECISIONS.md
+        .manage(Mutex::new(commands::stt::RecordingState::default()))
         .setup(|app| {
             use tauri::Emitter;
             use tauri_plugin_clipboard_manager::ClipboardExt;
@@ -25,34 +28,49 @@ pub fn run() {
                 Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState,
             };
 
-            // Use explicit Code+Modifiers instead of string parsing for reliability
-            let shortcut = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::SHIFT), Code::KeyE);
+            // Use explicit Code+Modifiers instead of string parsing for reliability.
+            let enhance_shortcut =
+                Shortcut::new(Some(Modifiers::CONTROL | Modifiers::SHIFT), Code::KeyE);
+            let dictate_shortcut =
+                Shortcut::new(Some(Modifiers::CONTROL | Modifiers::SHIFT), Code::KeyD);
 
             #[cfg(debug_assertions)]
-            eprintln!("[PromptFlow] Registering hotkey Ctrl+Shift+E...");
-            app.handle()
-                .global_shortcut()
-                .on_shortcut(shortcut, |app, _shortcut, event| {
-                    #[cfg(debug_assertions)]
-                    eprintln!("[PromptFlow] Hotkey fired! state={:?}", event.state);
+            eprintln!("[PromptFlow] Registering hotkeys Ctrl+Shift+E / Ctrl+Shift+D...");
+
+            // Enhance: read the clipboard, show the overlay, emit hotkey://enhance.
+            app.handle().global_shortcut().on_shortcut(
+                enhance_shortcut,
+                |app, _shortcut, event| {
                     if event.state == ShortcutState::Pressed {
                         use tauri::Manager;
                         let text = app.clipboard().read_text().unwrap_or_default();
-                        #[cfg(debug_assertions)]
-                        eprintln!(
-                            "[PromptFlow] Clipboard text: {:?}",
-                            &text[..text.len().min(50)]
-                        );
-                        // Show the window from Rust — don't rely on JS win.show()
                         if let Some(win) = app.get_webview_window("overlay") {
                             let _ = win.show();
                             let _ = win.set_focus();
                         }
                         let _ = app.emit("hotkey://enhance", text);
                     }
-                })?;
+                },
+            )?;
+
+            // Dictate: show the overlay and emit hotkey://dictate (the frontend
+            // starts/stops recording).
+            app.handle().global_shortcut().on_shortcut(
+                dictate_shortcut,
+                |app, _shortcut, event| {
+                    if event.state == ShortcutState::Pressed {
+                        use tauri::Manager;
+                        if let Some(win) = app.get_webview_window("overlay") {
+                            let _ = win.show();
+                            let _ = win.set_focus();
+                        }
+                        let _ = app.emit("hotkey://dictate", ());
+                    }
+                },
+            )?;
+
             #[cfg(debug_assertions)]
-            eprintln!("[PromptFlow] Hotkey registered OK");
+            eprintln!("[PromptFlow] Hotkeys registered OK");
 
             Ok(())
         })
