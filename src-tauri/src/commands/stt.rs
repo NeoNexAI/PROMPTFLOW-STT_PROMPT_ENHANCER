@@ -26,6 +26,7 @@ pub struct RecordingState {
 /// running recording is discarded.
 #[tauri::command]
 pub async fn start_recording(
+    app: tauri::AppHandle,
     engine: String,
     state: State<'_, Mutex<RecordingState>>,
 ) -> Result<(), AppError> {
@@ -34,7 +35,7 @@ pub async fn start_recording(
             "web_speech is handled in the browser, not via start_recording".to_string(),
         ));
     }
-    let recorder = Recorder::start()?;
+    let recorder = Recorder::start(app)?;
     let mut guard = state
         .lock()
         .map_err(|_| AppError::Stt("recording state poisoned".to_string()))?;
@@ -67,7 +68,14 @@ pub async fn stop_recording(
     } else {
         None
     };
-    let stt_engine = stt::make_engine(&engine, api_key)?;
+    // whisper.cpp needs its binary/model paths, sourced from saved settings.
+    let settings = crate::commands::settings::load(&app)?;
+    let config = stt::EngineConfig {
+        api_key,
+        binary_path: Some(settings.whisper_cpp_binary),
+        model_path: Some(settings.whisper_cpp_model),
+    };
+    let stt_engine = stt::make_engine(&engine, config)?;
     let transcript = stt_engine
         .transcribe(recording.samples, recording.sample_rate)
         .await?;

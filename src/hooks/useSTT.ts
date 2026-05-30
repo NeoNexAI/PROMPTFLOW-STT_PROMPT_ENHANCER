@@ -107,20 +107,25 @@ export function useDictation() {
     else void start()
   }, [start, stop])
 
-  // Dictate hotkey + backend final-transcript event.
+  // Dictate hotkey + backend events (VAD auto-stop, final transcript).
   useEffect(() => {
     const unDictate = listen('hotkey://dictate', () => {
       setOverlayVisible(true)
       toggle()
+    })
+    // VAD detected end-of-speech: finalize exactly like a manual stop.
+    const unAutoStop = listen('stt://autostop', () => {
+      void stop()
     })
     const unDone = listen<string>('stt://done', (event) => {
       if (event.payload) setInputText(event.payload)
     })
     return () => {
       unDictate.then((u) => u()).catch(() => {})
+      unAutoStop.then((u) => u()).catch(() => {})
       unDone.then((u) => u()).catch(() => {})
     }
-  }, [toggle, setInputText, setOverlayVisible])
+  }, [toggle, stop, setInputText, setOverlayVisible])
 
   return { start, stop, toggle }
 }

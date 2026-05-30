@@ -38,9 +38,52 @@ pub fn encode_wav_pcm16(samples: &[f32], sample_rate: u32) -> Vec<u8> {
     buf
 }
 
+/// Naive linear-interpolation resampler to `to` Hz. Used by the local
+/// whisper.cpp engine, which requires 16 kHz mono input. Returns the input
+/// unchanged when the rates already match.
+pub fn resample_linear(input: &[f32], from: u32, to: u32) -> Vec<f32> {
+    if input.is_empty() || from == to || from == 0 || to == 0 {
+        return input.to_vec();
+    }
+    let ratio = to as f64 / from as f64;
+    let out_len = ((input.len() as f64) * ratio).round() as usize;
+    let last = input.len() - 1;
+    let mut out = Vec::with_capacity(out_len);
+    for i in 0..out_len {
+        let src = i as f64 / ratio;
+        let idx = src.floor() as usize;
+        let frac = (src - idx as f64) as f32;
+        let a = input[idx.min(last)];
+        let b = input[(idx + 1).min(last)];
+        out.push(a + (b - a) * frac);
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_resample_identity_when_rates_match() {
+        let s = vec![0.1, 0.2, 0.3];
+        assert_eq!(resample_linear(&s, 16_000, 16_000), s);
+    }
+
+    #[test]
+    fn test_resample_downsample_halves_length() {
+        let s = vec![0.0; 100];
+        let out = resample_linear(&s, 32_000, 16_000);
+        assert_eq!(out.len(), 50);
+    }
+
+    #[test]
+    fn test_resample_constant_signal_stays_constant() {
+        let s = vec![0.5f32; 48];
+        let out = resample_linear(&s, 48_000, 16_000);
+        assert_eq!(out.len(), 16);
+        assert!(out.iter().all(|v| (*v - 0.5).abs() < 1e-6));
+    }
 
     #[test]
     fn test_header_and_length() {

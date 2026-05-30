@@ -39,6 +39,12 @@ pub struct Settings {
     pub privacy_mode: bool,
     pub hotkey_enhance: String,
     pub hotkey_dictate: String,
+    // Local whisper.cpp paths (optional). `#[serde(default)]` keeps older
+    // settings.json files (written before these existed) loadable.
+    #[serde(default)]
+    pub whisper_cpp_binary: String,
+    #[serde(default)]
+    pub whisper_cpp_model: String,
 }
 
 impl Default for Settings {
@@ -50,6 +56,8 @@ impl Default for Settings {
             privacy_mode: false,
             hotkey_enhance: "CommandOrControl+Shift+E".to_string(),
             hotkey_dictate: "CommandOrControl+Shift+D".to_string(),
+            whisper_cpp_binary: String::new(),
+            whisper_cpp_model: String::new(),
         }
     }
 }

@@ -44,29 +44,38 @@ pub fn key_account(engine_id: &str) -> &str {
     }
 }
 
-/// Builds a boxed [`STTEngine`] for `engine_id`. `api_key` is required for
-/// engines where [`requires_api_key`] is true.
+/// Construction parameters for an STT engine. `api_key` is needed by cloud
+/// engines; `binary_path`/`model_path` configure the local whisper.cpp engine.
+#[derive(Debug, Default, Clone)]
+pub struct EngineConfig {
+    pub api_key: Option<String>,
+    pub binary_path: Option<String>,
+    pub model_path: Option<String>,
+}
+
+/// Builds a boxed [`STTEngine`] for `engine_id` from `config`.
 ///
-/// Only `whisper_api` is implemented in the Rust backend so far; the streaming
-/// and local engines return a clear "not yet implemented" error, and
+/// `whisper_api` (cloud) and `whisper_cpp` (local) are implemented; the
+/// streaming engines return a clear "not yet implemented" error and
 /// `web_speech` is rejected because it runs in the WebView.
-pub fn make_engine(
-    engine_id: &str,
-    api_key: Option<String>,
-) -> Result<Box<dyn STTEngine>, AppError> {
+pub fn make_engine(engine_id: &str, config: EngineConfig) -> Result<Box<dyn STTEngine>, AppError> {
     match engine_id {
         "whisper_api" => {
-            let key = api_key.filter(|k| !k.is_empty()).ok_or_else(|| {
+            let key = config.api_key.filter(|k| !k.is_empty()).ok_or_else(|| {
                 AppError::Stt("No API key configured for whisper_api".to_string())
             })?;
             Ok(Box::new(engines::whisper_api::WhisperApiEngine::new(key)))
         }
+        "whisper_cpp" => Ok(Box::new(engines::whisper_cpp::WhisperCppEngine::new(
+            config.binary_path.unwrap_or_default(),
+            config.model_path.unwrap_or_default(),
+        ))),
         "web_speech" => Err(AppError::Stt(
             "web_speech runs in the browser, not the backend".to_string(),
         )),
-        "whisper_cpp" | "deepgram" | "assembly_ai" | "google_stt" | "azure_stt" => Err(
-            AppError::Stt(format!("STT engine '{engine_id}' is not implemented yet")),
-        ),
+        "deepgram" | "assembly_ai" | "google_stt" | "azure_stt" => Err(AppError::Stt(format!(
+            "STT engine '{engine_id}' is not implemented yet"
+        ))),
         other => Err(AppError::Stt(format!("Unknown STT engine: {other}"))),
     }
 }
@@ -88,24 +97,46 @@ mod tests {
         assert_eq!(key_account("deepgram"), "deepgram");
     }
 
+    fn cfg_key() -> EngineConfig {
+        EngineConfig {
+            api_key: Some("k".into()),
+            ..Default::default()
+        }
+    }
+
     #[test]
     fn test_make_engine_whisper_api_ok() {
-        let engine = make_engine("whisper_api", Some("k".into())).unwrap();
+        let engine = make_engine("whisper_api", cfg_key()).unwrap();
         assert_eq!(engine.engine_id(), "whisper_api");
     }
 
     #[test]
     fn test_make_engine_whisper_api_requires_key() {
         assert!(matches!(
-            make_engine("whisper_api", None),
+            make_engine("whisper_api", EngineConfig::default()),
             Err(AppError::Stt(_))
         ));
     }
 
     #[test]
+    fn test_make_engine_whisper_cpp_ok_without_key() {
+        let engine = make_engine(
+            "whisper_cpp",
+            EngineConfig {
+                binary_path: Some("whisper-cli".into()),
+                model_path: Some("model.bin".into()),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        assert_eq!(engine.engine_id(), "whisper_cpp");
+        assert!(!engine.requires_api_key());
+    }
+
+    #[test]
     fn test_make_engine_web_speech_rejected() {
         assert!(matches!(
-            make_engine("web_speech", None),
+            make_engine("web_speech", EngineConfig::default()),
             Err(AppError::Stt(_))
         ));
     }
@@ -113,10 +144,13 @@ mod tests {
     #[test]
     fn test_make_engine_unimplemented_and_unknown() {
         assert!(matches!(
-            make_engine("deepgram", Some("k".into())),
+            make_engine("deepgram", cfg_key()),
             Err(AppError::Stt(_))
         ));
-        assert!(matches!(make_engine("bogus", None), Err(AppError::Stt(_))));
+        assert!(matches!(
+            make_engine("bogus", EngineConfig::default()),
+            Err(AppError::Stt(_))
+        ));
     }
 
     #[test]
