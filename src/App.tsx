@@ -4,6 +4,7 @@ import { useUIStore } from '@/stores/uiStore'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useHotkeys } from '@/hooks/useHotkeys'
 import { useEnhancement } from '@/hooks/useEnhancement'
+import { useDictation } from '@/hooks/useSTT'
 import { OverlayWindow } from '@/components/overlay/OverlayWindow'
 import { SettingsWindow } from '@/components/settings/SettingsWindow'
 import { tauriApi } from '@/lib/tauri'
@@ -37,15 +38,18 @@ export default function App() {
 
   // Subscribe to hotkey events emitted by the Rust backend
   useHotkeys()
+  // Voice dictation: wires the dictate hotkey + stt://done listener
+  const { toggle: toggleDictation } = useDictation()
 
   const { enhance } = useEnhancement()
   // Stable reference so OverlayWindow doesn't re-render on every parent update
   const handleEnhance = useCallback(() => { enhance() }, [enhance])
+  const handleDictate = useCallback(() => { toggleDictation() }, [toggleDictation])
 
   return (
     <>
       {overlayVisible && !settingsVisible && (
-        <OverlayWindow onEnhance={handleEnhance} />
+        <OverlayWindow onEnhance={handleEnhance} onDictate={handleDictate} />
       )}
       {settingsVisible && (
         <SettingsWindow />

@@ -2,12 +2,15 @@ import { useCallback } from 'react'
 import type { AIProvider } from '@/types'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useUIStore } from '@/stores/uiStore'
-import { PROVIDERS, providerRequiresApiKey } from '@/lib/catalog'
+import type { STTEngine } from '@/types'
+import { PROVIDERS, STT_ENGINES, providerRequiresApiKey } from '@/lib/catalog'
 import { ApiKeyInput } from './ApiKeyInput'
 
 export function SettingsWindow() {
   const provider = useSettingsStore((s) => s.provider)
   const setProvider = useSettingsStore((s) => s.setProvider)
+  const sttEngine = useSettingsStore((s) => s.sttEngine)
+  const setSttEngine = useSettingsStore((s) => s.setSttEngine)
   const setSettingsVisible = useUIStore((s) => s.setSettingsVisible)
   const setOverlayVisible = useUIStore((s) => s.setOverlayVisible)
 
@@ -24,6 +27,13 @@ export function SettingsWindow() {
   )
 
   const needsKey = providerRequiresApiKey(provider)
+
+  const handleSttChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setSttEngine(e.target.value as STTEngine)
+    },
+    [setSttEngine],
+  )
 
   return (
     <div
@@ -83,6 +93,26 @@ export function SettingsWindow() {
                 : 'The custom provider uses your own OpenAI-compatible endpoint — no key is stored unless your endpoint requires one.'}
             </p>
           )}
+        </section>
+
+        {/* Voice dictation (STT) section */}
+        <section>
+          <h2 className="text-sm font-medium text-foreground mb-2">Voice dictation</h2>
+          <select
+            aria-label="STT engine"
+            value={sttEngine}
+            onChange={handleSttChange}
+            className="w-full bg-secondary text-secondary-foreground text-sm rounded-[var(--radius)] px-2 py-1.5 border border-border"
+          >
+            {STT_ENGINES.map((e) => (
+              <option key={e.id} value={e.id} disabled={!e.implemented}>
+                {e.label}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-muted-foreground mt-1">
+            Press Ctrl/Cmd+Shift+D or the mic button to dictate. Whisper API uses your OpenAI key.
+          </p>
         </section>
       </div>
     </div>

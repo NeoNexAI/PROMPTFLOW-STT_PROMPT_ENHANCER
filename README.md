@@ -143,10 +143,12 @@ Full roadmap: [docs/specs/07_ROADMAP.md](docs/specs/07_ROADMAP.md)
 Text enhancement is functional end-to-end: global hotkey → clipboard → AI →
 clipboard, with **all 12 enhancement modes**, **8 AI providers** (OpenAI,
 Anthropic, Gemini, Groq, Mistral, OpenRouter, Ollama, Custom), keychain-stored
-keys, SQLite usage logging, and server-side Privacy Mode enforcement. Voice
-dictation (STT engines), OCR, the onboarding wizard, the usage dashboard UI and
-the in-app auto-updater are scaffolded but not yet wired — see the roadmap and
-[docs/DECISIONS.md](docs/DECISIONS.md).
+keys, SQLite usage logging, and server-side Privacy Mode enforcement.
+**Voice dictation** works via the Whisper API and the browser Web Speech engine
+(`Ctrl/Cmd+Shift+D` or the mic button). The remaining STT engines (whisper.cpp,
+Deepgram, AssemblyAI, Google, Azure), OCR, the onboarding wizard, the usage
+dashboard UI and the in-app auto-updater are scaffolded but not yet wired — see
+the roadmap and [docs/DECISIONS.md](docs/DECISIONS.md).
 
 ---
 
