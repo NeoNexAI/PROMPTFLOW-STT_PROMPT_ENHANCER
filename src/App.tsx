@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from 'react'
 import { getCurrentWindow } from '@tauri-apps/api/window'
+import { LogicalSize } from '@tauri-apps/api/dpi'
 import { useUIStore } from '@/stores/uiStore'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { useHotkeys } from '@/hooks/useHotkeys'
@@ -36,10 +37,16 @@ export default function App() {
     if (!onboarded) setOnboardingVisible(true)
   }, [onboarded, setOnboardingVisible])
 
-  // Sync Tauri window visibility with the React store
+  // Sync Tauri window visibility AND size with the active view. The window is
+  // not user-resizable, so we size it to fit each view (Settings is taller than
+  // the overlay — otherwise its content was clipped by the fixed window height).
   useEffect(() => {
     const win = getCurrentWindow()
-    if (overlayVisible || settingsVisible || onboardingVisible) {
+    const visible = overlayVisible || settingsVisible || onboardingVisible
+    if (visible) {
+      const height = onboardingVisible ? 470 : settingsVisible ? 480 : 360
+      win.setSize(new LogicalSize(480, height)).catch(console.error)
+      win.center().catch(() => {})
       win.show().catch(console.error)
     } else {
       win.hide().catch(console.error)

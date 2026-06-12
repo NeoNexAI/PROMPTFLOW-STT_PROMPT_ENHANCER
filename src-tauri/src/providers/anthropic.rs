@@ -62,7 +62,7 @@ impl AnthropicProvider {
         Self {
             api_key,
             model: model.unwrap_or_else(|| DEFAULT_MODEL.to_string()),
-            client: reqwest::Client::new(),
+            client: crate::http::client(),
         }
     }
 }
