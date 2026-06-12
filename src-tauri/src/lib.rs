@@ -5,6 +5,7 @@ mod cost;
 mod enhancement;
 mod error;
 mod hotkeys;
+mod http;
 mod permissions;
 mod providers;
 mod storage;

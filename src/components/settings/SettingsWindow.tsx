@@ -54,7 +54,7 @@ export function SettingsWindow() {
 
   return (
     <div
-      className="w-[480px] h-[420px] bg-background border border-border rounded-[12px] shadow-[0_25px_50px_rgba(0,0,0,0.5)] flex flex-col"
+      className="w-screen h-screen bg-background border border-border rounded-[12px] shadow-[0_25px_50px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden"
       role="dialog"
       aria-label="PromptFlow settings"
       aria-modal="true"

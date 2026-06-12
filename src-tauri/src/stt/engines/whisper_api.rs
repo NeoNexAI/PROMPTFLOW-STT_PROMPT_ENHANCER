@@ -24,7 +24,7 @@ impl WhisperApiEngine {
     pub fn new(api_key: String) -> Self {
         Self {
             api_key,
-            client: reqwest::Client::new(),
+            client: crate::http::client(),
         }
     }
 }
@@ -50,6 +50,9 @@ impl STTEngine for WhisperApiEngine {
             .post(ENDPOINT)
             .bearer_auth(&self.api_key)
             .multipart(form)
+            // Transcription can take longer than the default 30 s client timeout;
+            // the contract (docs/specs/06 §3) allows 60 s for STT.
+            .timeout(std::time::Duration::from_secs(60))
             .send()
             .await
             .map_err(|e| AppError::Stt(format!("Whisper request failed: {e}")))?;

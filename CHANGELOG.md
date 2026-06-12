@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — Reliability & hardening (audit M0)
+- **HTTP timeouts + connection reuse**: all providers/STT now use a single shared
+  `reqwest` client (`src-tauri/src/http.rs`) with a 10 s connect / 30 s read
+  timeout (60 s for Whisper). Previously a new client was built per request with
+  **no timeout**, so a hung upstream blocked indefinitely (and violated the
+  contract in `docs/specs/06`).
+- **Content-Security-Policy enabled** (`tauri.conf.json`): was `null`; now
+  `default-src 'self'` with `script-src 'self'`, `style-src 'self' 'unsafe-inline'`,
+  and dev-server allowances. Limits the blast radius of any WebView XSS.
+- **Settings window no longer clipped**: the window is now sized per active view
+  (overlay / settings / onboarding) instead of a fixed 320 px height that cut off
+  the Settings panel.
+
+### Fixed
+- The onboarding "Run test" step now passes the model / base-URL overrides, so the
+  test works for OpenRouter and Custom providers (previously always errored).
+
+### Added
+- Frontend unit tests via **Vitest** (seed suite for the catalog and utils;
+  wired into CI) and bumped the project version to **0.2.0**.
+
+## [0.2.0] — Voice dictation & settings
+
+The v0.2 milestone: voice dictation end-to-end plus the settings/onboarding UX.
+
 ### Added — Configurable hotkeys (v0.2 complete)
 - The enhance and dictate global hotkeys are now **editable in Settings** and
   applied immediately. A reusable `register_pair` registers both shortcuts (used

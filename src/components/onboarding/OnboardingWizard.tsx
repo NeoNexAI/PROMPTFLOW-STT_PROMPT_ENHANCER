@@ -22,6 +22,8 @@ function errMessage(e: unknown): string {
 export function OnboardingWizard() {
   const provider = useSettingsStore((s) => s.provider)
   const setProvider = useSettingsStore((s) => s.setProvider)
+  const models = useSettingsStore((s) => s.models)
+  const customBaseUrl = useSettingsStore((s) => s.customBaseUrl)
   const setHasApiKey = useSettingsStore((s) => s.setHasApiKey)
   const setOnboarded = useSettingsStore((s) => s.setOnboarded)
   const setOnboardingVisible = useUIStore((s) => s.setOnboardingVisible)
@@ -70,20 +72,23 @@ export function OnboardingWizard() {
     setTestResult(null)
     setBusy(true)
     try {
-      const res = await tauriApi.enhanceText(SAMPLE_TEXT, 'fix_grammar', provider)
+      const res = await tauriApi.enhanceText(SAMPLE_TEXT, 'fix_grammar', provider, {
+        model: models[provider] || undefined,
+        baseUrl: provider === 'custom' ? customBaseUrl || undefined : undefined,
+      })
       setTestResult(res.result)
     } catch (e) {
       setError(errMessage(e))
     } finally {
       setBusy(false)
     }
-  }, [provider])
+  }, [provider, models, customBaseUrl])
 
   const progress = useMemo(() => `Step ${step} of 3`, [step])
 
   return (
     <div
-      className="w-[480px] min-h-[320px] bg-background border border-border rounded-[12px] shadow-[0_25px_50px_rgba(0,0,0,0.5)] flex flex-col"
+      className="w-screen h-screen bg-background border border-border rounded-[12px] shadow-[0_25px_50px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden"
       role="dialog"
       aria-label="Welcome to PromptFlow"
       aria-modal="true"

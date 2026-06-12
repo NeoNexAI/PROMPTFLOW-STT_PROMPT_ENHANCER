@@ -23,7 +23,7 @@ impl CustomProvider {
             endpoint: format!("{base}/chat/completions"),
             api_key,
             model,
-            client: reqwest::Client::new(),
+            client: crate::http::client(),
         }
     }
 

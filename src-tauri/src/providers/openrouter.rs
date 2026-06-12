@@ -22,7 +22,7 @@ impl OpenRouterProvider {
         Self {
             api_key,
             model,
-            client: reqwest::Client::new(),
+            client: crate::http::client(),
         }
     }
 }
